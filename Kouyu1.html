@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>華語口語與表達練習：龍舟隊招募海報熱情邀約</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f1f5f9;
+    }
+
+    /* Magnifier Lens / Interactive Word Hover Effects */
+    .mag-item {
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .mag-item:hover, .mag-item.active {
+      transform: scale(1.08) translateX(4px);
+      background-color: #fef3c7;
+      border-color: #f59e0b;
+      box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Dict Char Hover Effects */
+    .dict-char {
+      display: inline-block;
+      cursor: pointer;
+      padding: 1px 3px;
+      margin: 0 1px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .dict-char:hover {
+      background-color: #fde047;
+      color: #0f172a;
+      transform: translateY(-2px);
+    }
+
+    .dict-char.char-matched {
+      background-color: #22c55e !important;
+      color: #ffffff !important;
+      font-weight: bold;
+    }
+
+    /* Tooltip Styling */
+    .char-tooltip {
+      position: absolute;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #0f172a;
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 50;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .char-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 5px;
+      border-style: solid;
+      border-color: #0f172a transparent transparent transparent;
+    }
+
+    .dict-char:hover .char-tooltip {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(-4px);
+    }
+
+    /* Pulsing Magnifier Effect */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .lens-glow {
+      animation: pulse-ring 2.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col justify-between">
+
+  <!-- Header Section -->
+  <header class="bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 text-white shadow-md py-4 px-6 sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md">
+          <i class="fa-solid fa-bullhorn text-2xl text-amber-200"></i>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-2xl font-black tracking-wide">華語表達與口語練習</h1>
+          <p class="text-xs text-amber-100 font-light">任務：看廣告海報向同學熱情邀約一同參加（限時 3 分鐘）</p>
+        </div>
+      </div>
+      
+      <!-- Badge -->
+      <div class="hidden sm:flex items-center gap-2 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/20 text-xs">
+        <i class="fa-solid fa-people-group text-amber-200"></i>
+        <span>看圖說話與互動表達</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-6xl mx-auto px-4 py-6 w-full flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Poster & Interactive Magnifier Key Info Panel -->
+    <section class="lg:col-span-6 flex flex-col gap-4">
+      
+      <!-- Poster Card -->
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-image text-amber-600"></i>
+            招募廣告原圖 (點擊或移動查看關鍵字)
+          </h2>
+          <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full">原圖展示</span>
+        </div>
+
+        <!-- Poster Image Container -->
+        <div class="relative w-full rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 shadow-inner group">
+          <img id="posterImg" src="https://i.ibb.co.com/Rks2Gbxh/image.png" alt="龍舟隊招募廣告" class="w-full h-auto object-contain transition-transform duration-300">
+        </div>
+      </div>
+
+      <!-- Magnifier / Key Info Explorer Panel -->
+      <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass text-amber-600 lens-glow"></i>
+            放大鏡關鍵資訊檢索 (Hover/Click 查看拼音與英譯)
+          </h3>
+          <span class="text-[11px] text-slate-500 italic">點擊字詞可彈出詳細註解</span>
+        </div>
+
+        <!-- Magnifier Interactive List -->
+        <div class="space-y-2.5">
+          
+          <!-- Key Info Item 1: 主辦單位 -->
+          <div class="mag-item bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between" onclick="highlightMag(this)">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs shrink-0">1</div>
+              <div>
+                <div class="text-xs text-slate-400 font-semibold">主辦單位 / Organizer</div>
+                <div class="text-base font-bold text-slate-800" id="magOrg">
+                  <!-- Rendered with Pinyin Tooltip -->
+                </div>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+          </div>
+
+          <!-- Key Info Item 2: 招募隊伍 -->
+          <div class="mag-item bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between" onclick="highlightMag(this)">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-xs shrink-0">2</div>
+              <div>
+                <div class="text-xs text-slate-400 font-semibold">招募隊伍 / Team</div>
+                <div class="text-base font-bold text-slate-800" id="magTeam">
+                  <!-- Rendered with Pinyin Tooltip -->
+                </div>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+          </div>
+
+          <!-- Key Info Item 3: 報名條件 -->
+          <div class="mag-item bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between" onclick="highlightMag(this)">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs shrink-0">3</div>
+              <div>
+                <div class="text-xs text-slate-400 font-semibold">報名條件 / Requirements</div>
+                <div class="text-base font-bold text-slate-800" id="magReq">
+                  <!-- Rendered with Pinyin Tooltip -->
+                </div>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+          </div>
+
+          <!-- Key Info Item 4: 練習時間與地點 -->
+          <div class="mag-item bg-slate-50 border border-slate-200 p-3 rounded-2xl flex items-center justify-between" onclick="highlightMag(this)">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">4</div>
+              <div>
+                <div class="text-xs text-slate-400 font-semibold">練習時間與地點 / Time & Place</div>
+                <div class="text-base font-bold text-slate-800" id="magTimeLoc">
+                  <!-- Rendered with Pinyin Tooltip -->
+                </div>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Speech Practice, Controls & Audio Recording Playback -->
+    <section class="lg:col-span-6 flex flex-col gap-4">
+      
+      <!-- Task Prompt Box -->
+      <div class="bg-gradient-to-r from-amber-50 to-orange-50 p-4 rounded-3xl border border-amber-200/80">
+        <h3 class="text-sm font-bold text-amber-900 flex items-center gap-2 mb-1">
+          <i class="fa-solid fa-comments text-amber-600"></i> 說話練習情境與任務：
+        </h3>
+        <p class="text-xs sm:text-sm text-amber-800 leading-relaxed">
+          請想像你剛看到這張海報，請在 <b>3 分鐘內</b> 按下麥克風，熱情地向身邊的同學介紹海報內容，並邀請他/她一起參加龍舟隊！
+        </p>
+      </div>
+
+      <!-- Speech Script Box -->
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex-grow flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3 flex-wrap gap-2">
+          <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-quote-left text-amber-600"></i>
+            口語範例答案 (3-5 句繁體字)
+          </h2>
+          
+          <div class="flex items-center gap-2">
+            <!-- Show Pinyin Toggle -->
+            <button id="pinyinToggleBtn" onclick="toggleRubyPinyin()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors">
+              <i class="fa-solid fa-font"></i> 顯示拼音
+            </button>
+
+            <!-- TTS Listen Demo -->
+            <button id="ttsBtn" onclick="toggleTTS()" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors">
+              <i id="ttsIcon" class="fa-solid fa-volume-high"></i>
+              <span id="ttsBtnText">聽標準示範朗讀</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Script Paragraph Render Box -->
+        <div id="scriptContainer" class="text-base sm:text-lg leading-relaxed text-slate-800 font-medium flex-grow p-4 rounded-2xl bg-slate-50/70 border border-slate-100 min-h-[160px] flex flex-col justify-center">
+          <!-- Dynamically populated via JS -->
+        </div>
+
+        <!-- English Translation Accordion -->
+        <details class="mt-3 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+          <summary class="p-2.5 font-bold text-slate-600 cursor-pointer hover:text-slate-900 select-none flex items-center gap-1.5">
+            <i class="fa-solid fa-language text-amber-600"></i> 查看英文參考翻譯 (English Translation)
+          </summary>
+          <p class="px-3 pb-3 text-slate-500 leading-relaxed border-t border-slate-200 pt-2 italic">
+            "Look! NTNU Mandarin Training Center is recruiting members for the dragon boat team. It sounds so fun! As long as you can swim and speak a little Chinese, you can join—the requirements fit us perfectly. Practice is every day from 6:30 to 9:00 AM in Xindian. Shall we sign up together to exercise and practice Chinese at the same time?"
+          </p>
+        </details>
+
+        <!-- Speech-to-Text Recognition Box -->
+        <div class="mt-4 p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-bold text-slate-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-microphone-lines text-amber-600"></i> 即時語音辨識內容 (zh-TW)：
+            </span>
+            <span id="speechStatusTag" class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono font-bold">待命</span>
+          </div>
+          <p id="speechResultText" class="text-slate-600 min-h-[38px] italic leading-relaxed bg-white p-2.5 rounded-xl border border-slate-200">
+            點開麥克風開始說話，講完後可點擊錄音回放按鈕收聽與檢驗...
+          </p>
+        </div>
+      </div>
+
+      <!-- Controls Dashboard & Audio Replay Section -->
+      <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col gap-4">
+        
+        <!-- Timer, Accuracy & Audio Playback Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 items-center">
+          
+          <!-- Countdown Timer -->
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-stopwatch"></i>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">限時 3 分鐘</div>
+              <div id="timerDisplay" class="text-xl font-black font-mono text-slate-800">03:00</div>
+            </div>
+          </div>
+
+          <!-- Matching Coverage Bar -->
+          <div class="flex flex-col justify-center">
+            <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+              <span>認讀匹配度:</span>
+              <span id="liveAccuracyText" class="text-amber-600 font-extrabold">0%</span>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+              <div id="liveProgressBar" class="bg-amber-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <!-- Recorded Audio Replay Controls -->
+          <div class="flex flex-col items-center justify-center border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 pl-0 sm:pl-2">
+            <span class="text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+              <i class="fa-solid fa-circle-play text-emerald-500"></i> 我的錄音回放與檢驗
+            </span>
+            <audio id="audioPlayback" controls class="w-full h-8 max-w-[180px] hidden"></audio>
+            <span id="noAudioNotice" class="text-[11px] text-slate-400 italic">尚無錄音檔案</span>
+          </div>
+        </div>
+
+        <!-- Action Control Buttons -->
+        <div class="flex gap-3">
+          <button id="recordBtn" onclick="toggleRecording()" class="flex-1 py-3.5 px-4 bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white font-bold rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 text-base">
+            <i id="recordIcon" class="fa-solid fa-microphone text-lg"></i>
+            <span id="recordBtnText">點開麥克風開始練習</span>
+          </button>
+          
+          <button id="resetBtn" onclick="resetAll()" class="px-4 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-2xl transition-colors flex items-center justify-center gap-1.5 text-sm">
+            <i class="fa-solid fa-rotate-right"></i>
+            <span>重置</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Dictionary & Application Script Logic -->
+  <script>
+    // 1. Chinese Character Dictionary Database
+    const DICT = {
+      '師': { pinyin: 'shī', en: 'teacher / master' },
+      '大': { pinyin: 'dà', en: 'big / university' },
+      '國': { pinyin: 'guó', en: 'national / language' },
+      '語': { pinyin: 'yǔ', en: 'language' },
+      '中': { pinyin: 'zhōng', en: 'center / Chinese' },
+      '心': { pinyin: 'xīn', en: 'center / heart' },
+      '龍': { pinyin: 'lóng', en: 'dragon' },
+      '舟': { pinyin: 'zhōu', en: 'boat' },
+      '隊': { pinyin: 'duì', en: 'team' },
+      '會': { pinyin: 'huì', en: 'can / know how to' },
+      '游': { pinyin: 'yóu', en: 'swim' },
+      '泳': { pinyin: 'yǒng', en: 'swimming' },
+      '說': { pinyin: 'shuō', en: 'speak / say' },
+      '一': { pinyin: 'yī', en: 'one / a little' },
+      '點': { pinyin: 'diǎn', en: 'a little / o\'clock' },
+      '練': { pinyin: 'liàn', en: 'practice' },
+      '習': { pinyin: 'xí', en: 'learn / practice' },
+      '時': { pinyin: 'shí', en: 'time' },
+      '間': { pinyin: 'jiān', en: 'duration / space' },
+      '每': { pinyin: 'měi', en: 'every / each' },
+      '天': { pinyin: 'tiān', en: 'day / sky' },
+      '地': { pinyin: 'dì', en: 'place / ground' },
+      '方': { pinyin: 'fāng', en: 'location' },
+      '新': { pinyin: 'xīn', en: 'new / Xindian' },
+      '店': { pinyin: 'diàn', en: 'shop / Xindian' },
+      '你': { pinyin: 'nǐ', en: 'you' },
+      '看': { pinyin: 'kàn', en: 'look / see' },
+      '正': { pinyin: 'zhèng', en: 'currently' },
+      '在': { pinyin: 'zài', en: 'at / in progress' },
+      '招': { pinyin: 'zhāo', en: 'recruit' },
+      '募': { pinyin: 'mù', en: 'recruit' },
+      '員': { pinyin: 'yuán', en: 'member' },
+      '感': { pinyin: 'gǎn', en: 'feel' },
+      '覺': { pinyin: 'jué', en: 'feel / sense' },
+      '好': { pinyin: 'hǎo', en: 'very / good' },
+      '有': { pinyin: 'yǒu', en: 'have' },
+      '趣': { pinyin: 'qù', en: 'interesting' },
+      '喔': { pinyin: 'ō', en: 'exclamation' },
+      '只': { pinyin: 'zhǐ', en: 'only' },
+      '要': { pinyin: 'yào', en: 'as long as / want' },
+      '和': { pinyin: 'hé', en: 'and' },
+      '就': { pinyin: 'jiù', en: 'then' },
+      '可': { pinyin: 'kě', en: 'can' },
+      '以': { pinyin: 'yǐ', en: 'can / express' },
+      '參': { pinyin: 'cān', en: 'join' },
+      '加': { pinyin: 'jiā', en: 'join / add' },
+      '條': { pinyin: 'tiáo', en: 'condition' },
+      '件': { pinyin: 'jiàn', en: 'item / condition' },
+      '非': { pinyin: 'fēi', en: 'very / non' },
+      '常': { pinyin: 'cháng', en: 'very / often' },
+      '適': { pinyin: 'shì', en: 'suitable' },
+      '合': { pinyin: 'hé', en: 'fit / suitable' },
+      '我': { pinyin: 'wǒ', en: 'I / me' },
+      '們': { pinyin: 'men', en: 'plural suffix' },
+      '是': { pinyin: 'shì', en: 'is / am / are' },
+      '早': { pinyin: 'zǎo', en: 'morning / early' },
+      '上': { pinyin: 'shàng', en: 'morning / on' },
+      '六': { pinyin: 'liù', en: 'six' },
+      '半': { pinyin: 'bàn', en: 'half / thirty' },
+      '到': { pinyin: 'dào', en: 'to / until' },
+      '九': { pinyin: 'jiǔ', en: 'nine' },
+      '起': { pinyin: 'qǐ', en: 'together / start' },
+      '報': { pinyin: 'bào', en: 'sign up / report' },
+      '名': { pinyin: 'míng', en: 'name / sign up' },
+      '順': { pinyin: 'shùn', en: 'incidentally' },
+      '便': { pinyin: 'biàn', en: 'conveniently' },
+      '鍛': { pinyin: 'duàn', en: 'exercise / forge' },
+      '鍊': { pinyin: 'liàn', en: 'train / exercise' },
+      '身': { pinyin: 'shēn', en: 'body' },
+      '體': { pinyin: 'tǐ', en: 'body' }
+    };
+
+    // 2. Sample Answer Script (3-5 Traditional Chinese Sentences)
+    const SAMPLE_SCRIPT = [
+      "你看！師大國語中心正在招募龍舟隊隊員，感覺好有趣喔！",
+      "只要會游泳和說一點中文就可以參加，條件非常適合我們。",
+      "練習時間是每天早上六點半到九點，地點在新店。",
+      "我們一起報名參加，順便鍛鍊身體、練習中文好不好？"
+    ];
+
+    let showRubyPinyin = false;
+
+    // Helper: Wrap text in interactive character span with tooltip or ruby
+    function createDictSpan(char) {
+      const isChinese = /[\u4e00-\u9fa5]/.test(char);
+      if (!isChinese) return document.createTextNode(char);
+
+      const info = DICT[char] || { pinyin: '', en: 'Chinese character' };
+
+      const span = document.createElement('span');
+      span.className = 'dict-char';
+      span.dataset.char = char;
+
+      if (showRubyPinyin && info.pinyin) {
+        span.innerHTML = `<ruby>${char}<rt class="text-[10px] text-amber-600 font-normal">${info.pinyin}</rt></ruby>`;
+      } else {
+        span.textContent = char;
+      }
+
+      // Tooltip
+      const tooltip = document.createElement('span');
+      tooltip.className = 'char-tooltip';
+      tooltip.innerHTML = `<strong>${info.pinyin || char}</strong><br><span style="font-weight:normal;opacity:0.85;">${info.en}</span>`;
+      span.appendChild(tooltip);
+
+      return span;
+    }
+
+    // Populate Magnifier Info Boxes
+    function setupMagnifierPanel() {
+      const renderToElem = (elemId, textStr) => {
+        const target = document.getElementById(elemId);
+        target.innerHTML = '';
+        Array.from(textStr).forEach(c => target.appendChild(createDictSpan(c)));
+      };
+
+      renderToElem('magOrg', '師大國語中心');
+      renderToElem('magTeam', '龍舟隊 (Dragon Boat Team)');
+      renderToElem('magReq', '會游泳、會說一點中文');
+      renderToElem('magTimeLoc', '每天 6:30~9:00 am / 新店 Xīndiàn');
+    }
+
+    // Highlight Magnifier Cards
+    function highlightMag(element) {
+      document.querySelectorAll('.mag-item').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+    }
+
+    // Populate Main Speech Script
+    let totalTargetChars = 0;
+    let charSpanList = [];
+
+    function renderScript() {
+      const container = document.getElementById('scriptContainer');
+      container.innerHTML = "";
+      charSpanList = [];
+
+      SAMPLE_SCRIPT.forEach((sentence) => {
+        const pElem = document.createElement('p');
+        pElem.className = "mb-2 sm:mb-3 leading-relaxed";
+
+        Array.from(sentence).forEach(char => {
+          if (/[\u4e00-\u9fa5]/.test(char)) {
+            const span = createDictSpan(char);
+            pElem.appendChild(span);
+            charSpanList.push(span);
+          } else {
+            const punct = document.createElement('span');
+            punct.className = "text-amber-700 font-bold mx-0.5";
+            punct.textContent = char;
+            pElem.appendChild(punct);
+          }
+        });
+
+        container.appendChild(pElem);
+      });
+
+      totalTargetChars = charSpanList.length;
+    }
+
+    // Toggle Ruby Pinyin display over Chinese characters
+    function toggleRubyPinyin() {
+      showRubyPinyin = !showRubyPinyin;
+      const btn = document.getElementById('pinyinToggleBtn');
+      if (showRubyPinyin) {
+        btn.classList.replace('bg-slate-100', 'bg-amber-600');
+        btn.classList.replace('text-slate-700', 'text-white');
+      } else {
+        btn.classList.replace('bg-amber-600', 'bg-slate-100');
+        btn.classList.replace('text-white', 'text-slate-700');
+      }
+      renderScript();
+      setupMagnifierPanel();
+    }
+
+    // 3-Minute Countdown Timer Logic
+    const FULL_TIME = 180; // 3 mins
+    let timeLeft = FULL_TIME;
+    let timerInterval = null;
+
+    function updateTimerDisplay() {
+      const mins = Math.floor(timeLeft / 60);
+      const secs = timeLeft % 60;
+      document.getElementById('timerDisplay').textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timeLeft > 0) {
+          timeLeft--;
+          updateTimerDisplay();
+        } else {
+          stopRecording();
+          alert('3 分鐘練習時間結束！請收聽錄音並檢驗表達結果。');
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    // Web Speech Recognition & Audio Recorder
+    let isRecording = false;
+    let recognition = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioBlobUrl = null;
+    let matchedSet = new Set();
+    let isExplicitStop = false;
+
+    function initSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return false;
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'zh-TW';
+
+      recognition.onstart = () => {
+        const tag = document.getElementById('speechStatusTag');
+        tag.textContent = "錄音與辨識中";
+        tag.className = "text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md font-mono font-bold animate-pulse";
+      };
+
+      recognition.onresult = (event) => {
+        let text = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          text += event.results[i][0].transcript;
+        }
+        document.getElementById('speechResultText').textContent = text || "聽取語音中...";
+        matchSpokenText(text);
+      };
+
+      recognition.onend = () => {
+        if (isRecording && !isExplicitStop) {
+          try { recognition.start(); } catch(e){}
+        } else {
+          const tag = document.getElementById('speechStatusTag');
+          tag.textContent = "已停止";
+          tag.className = "text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-md font-mono font-bold";
+        }
+      };
+
+      return true;
+    }
+
+    // Highlight spoken matched characters
+    function matchSpokenText(spokenText) {
+      if (!spokenText) return;
+      const spokenChars = Array.from(spokenText);
+
+      spokenChars.forEach(sChar => {
+        charSpanList.forEach((span, idx) => {
+          if (!matchedSet.has(idx) && span.dataset.char === sChar) {
+            matchedSet.add(idx);
+            span.classList.add('char-matched');
+          }
+        });
+      });
+
+      const coverage = Math.round((matchedSet.size / totalTargetChars) * 100);
+      document.getElementById('liveAccuracyText').textContent = `${coverage}%`;
+      document.getElementById('liveProgressBar').style.width = `${coverage}%`;
+    }
+
+    // Toggle Microphone Recording & Web MediaRecorder
+    async function toggleRecording() {
+      if (isSpeaking) stopTTS();
+
+      if (!isRecording) {
+        startRecording();
+      } else {
+        stopRecording();
+      }
+    }
+
+    async function startRecording() {
+      isExplicitStop = false;
+      matchedSet.clear();
+      charSpanList.forEach(s => s.classList.remove('char-matched'));
+
+      // 1. Microphone Audio Recording via MediaRecorder API for playback
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          audioChunks = [];
+          mediaRecorder = new MediaRecorder(stream);
+          
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) audioChunks.push(e.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            if (audioBlobUrl) URL.revokeObjectURL(audioBlobUrl);
+            audioBlobUrl = URL.createObjectURL(audioBlob);
+            
+            const player = document.getElementById('audioPlayback');
+            player.src = audioBlobUrl;
+            player.classList.remove('hidden');
+            document.getElementById('noAudioNotice').classList.add('hidden');
+          };
+
+          mediaRecorder.start();
+        } catch (err) {
+          console.warn('Microphone permission not granted for playback recording:', err);
+        }
+      }
+
+      // 2. Real-time Speech Recognition
+      if (!recognition && !initSpeechRecognition()) {
+        console.warn('Web Speech Recognition API not supported in this browser.');
+      }
+
+      if (recognition) {
+        try { recognition.start(); } catch(e){}
+      }
+
+      isRecording = true;
+      document.getElementById('recordBtnText').textContent = '完成錄音 / 停止與回放';
+      const recordBtn = document.getElementById('recordBtn');
+      recordBtn.classList.remove('from-amber-600', 'via-orange-600', 'to-red-600');
+      recordBtn.classList.add('from-red-600', 'to-rose-700');
+      document.getElementById('recordIcon').className = 'fa-solid fa-square text-lg';
+
+      startTimer();
+    }
+
+    function stopRecording() {
+      isExplicitStop = true;
+      isRecording = false;
+
+      if (recognition) {
+        try { recognition.stop(); } catch(e){}
+      }
+
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      }
+
+      document.getElementById('recordBtnText').textContent = '點開麥克風開始練習';
+      const recordBtn = document.getElementById('recordBtn');
+      recordBtn.classList.remove('from-red-600', 'to-rose-700');
+      recordBtn.classList.add('from-amber-600', 'via-orange-600', 'to-red-600');
+      document.getElementById('recordIcon').className = 'fa-solid fa-microphone text-lg';
+
+      stopTimer();
+    }
+
+    // TTS Demo Speech Synthesis
+    let isSpeaking = false;
+    function toggleTTS() {
+      if (isRecording) stopRecording();
+
+      if ('speechSynthesis' in window) {
+        if (isSpeaking) {
+          stopTTS();
+        } else {
+          startTTS();
+        }
+      } else {
+        alert('您的瀏覽器不支援語音合成朗讀功能。');
+      }
+    }
+
+    function startTTS() {
+      window.speechSynthesis.cancel();
+      const textToRead = SAMPLE_SCRIPT.join("");
+      const utterance = new SpeechSynthesisUtterance(textToRead);
+      utterance.lang = 'zh-TW';
+      utterance.rate = 0.85;
+
+      utterance.onstart = () => {
+        isSpeaking = true;
+        document.getElementById('ttsBtnText').textContent = '停止朗讀';
+        document.getElementById('ttsIcon').className = 'fa-solid fa-circle-stop';
+      };
+
+      utterance.onend = stopTTS;
+      utterance.onerror = stopTTS;
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function stopTTS() {
+      window.speechSynthesis.cancel();
+      isSpeaking = false;
+      document.getElementById('ttsBtnText').textContent = '聽標準示範朗讀';
+      document.getElementById('ttsIcon').className = 'fa-solid fa-volume-high';
+    }
+
+    // Reset Application State
+    function resetAll() {
+      stopRecording();
+      stopTTS();
+      timeLeft = FULL_TIME;
+      updateTimerDisplay();
+
+      matchedSet.clear();
+      charSpanList.forEach(s => s.classList.remove('char-matched'));
+
+      document.getElementById('liveAccuracyText').textContent = '0%';
+      document.getElementById('liveProgressBar').style.width = '0%';
+      document.getElementById('speechResultText').textContent = '點開麥克風開始說話，講完後可點擊錄音回放按鈕收聽與檢驗...';
+
+      const player = document.getElementById('audioPlayback');
+      player.pause();
+      player.classList.add('hidden');
+      document.getElementById('noAudioNotice').classList.remove('hidden');
+    }
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      setupMagnifierPanel();
+      renderScript();
+      initSpeechRecognition();
+    });
+  </script>
+</body>
+</html>
