@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>語法口說練習：「怎麼 (zěnme)」— 安同可以怎麼去？</title>
+  <!-- 載入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 載入純前端 MP3 編碼器 lamejs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+  <!-- 載入繁體中文思源黑體 Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #faf7f2;
+      color: #1e293b;
+    }
+
+    /* 圖片卡片選中動畫與邊框 */
+    .transport-card {
+      transition: all 0.22s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .transport-card:hover {
+      transform: translateY(-3px);
+    }
+    .transport-card.selected {
+      border-color: #0d9488;
+      background-color: #f0fdfa;
+      box-shadow: 0 10px 20px -5px rgba(13, 148, 136, 0.22);
+    }
+
+    /* 錄音呼吸燈動畫 */
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.65);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 12px rgba(225, 29, 72, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(225, 29, 72, 0);
+      }
+    }
+    .recording-pulse {
+      animation: pulse-ring 1.5s infinite;
+    }
+
+    /* 撒花彩帶畫布固定在最上層且不阻擋點擊 */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 撒花彩帶 Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- 頂部導覽與標題列 -->
+  <header class="bg-white border-b border-stone-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-teal-600 text-white font-bold text-lg shadow-sm">
+          語
+        </span>
+        <div>
+          <h1 class="text-lg sm:text-xl font-bold text-stone-800 tracking-tight">
+            Interactive Grammar Speaking: <span class="text-teal-700">「怎麼 (zěnme)」</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-stone-500">
+            Asking &amp; Describing How Actions Are Done
+          </p>
+        </div>
+      </div>
+
+      <!-- 語法重點提示切換鈕 -->
+      <button
+        id="toggle-grammar-btn"
+        type="button"
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition"
+      >
+        <span>📖 Grammar Tip</span>
+        <span id="grammar-arrow" class="text-xs">▼</span>
+      </button>
+    </div>
+
+    <!-- 可折疊的語法提示卡片 -->
+    <div id="grammar-panel" class="hidden bg-amber-50/80 border-t border-amber-200/80">
+      <div class="max-w-5xl mx-auto px-4 py-4 text-sm text-stone-700 space-y-2">
+        <div class="flex flex-wrap items-baseline gap-2">
+          <span class="px-2 py-0.5 rounded-md bg-teal-700 text-white font-bold text-xs">Pattern</span>
+          <span class="font-bold text-stone-900 text-base">Subject + 可以 + 怎麼 + Verb (去 + Place)?</span>
+        </div>
+        <p class="leading-relaxed">
+          Place <strong class="text-teal-800">「怎麼 (zěnme)」</strong> before a verb to ask "how" to do something or which transportation to take. To answer, simply replace 「怎麼」 with a <strong>mode of transport</strong> (e.g., 坐高鐵, 搭捷運, 騎摩托車)!
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <div class="bg-white/90 rounded-lg p-2.5 border border-amber-200">
+            <span class="text-xs font-bold text-teal-700 block">Question Example:</span>
+            <span class="font-medium text-stone-800">安同可以<span class="text-rose-600 font-bold underline">怎麼</span>去學校？</span>
+            <span class="block text-xs text-stone-500 mt-0.5">How can Antong go to school?</span>
+          </div>
+          <div class="bg-white/90 rounded-lg p-2.5 border border-amber-200">
+            <span class="text-xs font-bold text-teal-700 block">Answer Example:</span>
+            <span class="font-medium text-stone-800">安同可以<span class="text-teal-700 font-bold underline">搭捷運</span>（或<span class="text-teal-700 font-bold underline">坐公車</span>）去學校。</span>
+            <span class="block text-xs text-stone-500 mt-0.5">Antong can take the MRT (or take the bus) to school.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主要內容區 -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 space-y-6">
+
+    <!-- 進度條與題號導覽 -->
+    <section class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-stone-200">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-2.5">
+          <span id="question-badge" class="px-3 py-1 rounded-full bg-teal-600 text-white font-bold text-sm">
+            Question 1 / 4
+          </span>
+          <span id="question-status-pill" class="px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 text-xs font-medium">
+            In Progress
+          </span>
+        </div>
+
+        <!-- 題目切換按鈕 -->
+        <div class="flex items-center gap-2">
+          <button
+            id="prev-btn"
+            type="button"
+            class="px-3.5 py-2 rounded-xl text-sm font-medium border border-stone-300 text-stone-700 bg-white hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            ← Previous
+          </button>
+          <button
+            id="next-btn"
+            type="button"
+            class="px-3.5 py-2 rounded-xl text-sm font-medium bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- 進度條 -->
+      <div class="w-full h-2 bg-stone-100 rounded-full overflow-hidden mb-4">
+        <div id="progress-bar" class="h-full bg-teal-500 transition-all duration-300" style="width: 25%"></div>
+      </div>
+
+      <!-- 當前題目顯示區（單頁只顯示一道題） -->
+      <div class="bg-gradient-to-r from-teal-50 via-emerald-50/70 to-amber-50/60 rounded-2xl p-5 sm:p-6 border border-teal-200/80">
+        <p class="text-xs sm:text-sm font-bold text-teal-700 uppercase tracking-wider mb-1">
+          Speaking Prompt (Click a picture below to choose transport &amp; answer aloud)
+        </p>
+        <h2 id="question-text" class="text-2xl sm:text-3xl font-black text-stone-900 tracking-wide">
+          安同可以怎麼去<span class="text-teal-700 underline decoration-amber-400 decoration-4 underline-offset-4">學校</span>？
+        </h2>
+        <p id="question-hint" class="text-sm text-stone-600 mt-2">
+          💡 Instructions: First, click at least one transport picture below. Then click "Start Prep Time" to think and draft—recording will start automatically when time is up!
+        </p>
+      </div>
+    </section>
+
+    <!-- 步驟一：交通工具圖片選擇區（嚴格使用指定原圖，不裁剪、不修改） -->
+    <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-stone-200">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <div>
+          <h3 class="text-base sm:text-lg font-bold text-stone-800 flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-teal-100 text-teal-800 text-xs font-bold">1</span>
+            Select Transportation Picture(s) (Single or Multiple)
+          </h3>
+          <p class="text-xs sm:text-sm text-stone-500 mt-0.5">
+            Click the picture(s) you want to use to describe how Antong can get to the destination.
+          </p>
+        </div>
+        <div id="selected-summary-badge" class="text-xs sm:text-sm font-medium px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600">
+          No picture selected
+        </div>
+      </div>
+
+      <!-- 4x2 圖片網格 -->
+      <div id="transport-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <!-- 由 JavaScript 動態渲染 8 張原圖卡片 -->
+      </div>
+    </section>
+
+    <!-- 步驟二 & 三：準備計時區 + 口說錄音與即時辨識區 -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- 左側：步驟二（2分鐘準備時間 + 打字草稿區） -->
+      <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-stone-200 flex flex-col justify-between space-y-4">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="text-base sm:text-lg font-bold text-stone-800 flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">2</span>
+              Prep Time (2 Mins) &amp; Typing Draft
+            </h3>
+            <span id="prep-timer-display" class="font-mono text-xl sm:text-2xl font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-xl border border-amber-200">
+              02:00
+            </span>
+          </div>
+
+          <p class="text-xs sm:text-sm text-stone-600">
+            Click <strong>"Start Prep Time"</strong> for <strong>2 minutes</strong> to prepare your answer. Recording will <strong>start automatically</strong> when the timer reaches 00:00.
+          </p>
+
+          <!-- 準備時間控制按鈕 -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              id="start-prep-btn"
+              type="button"
+              class="flex-1 min-w-[150px] inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm bg-amber-500 text-white hover:bg-amber-600 active:scale-[0.99] shadow-sm transition"
+            >
+              <span>⏱️ Start Prep Time (2:00)</span>
+            </button>
+            <button
+              id="skip-prep-btn"
+              type="button"
+              class="hidden inline-flex items-center justify-center gap-1 px-3.5 py-3 rounded-xl font-bold text-sm bg-rose-600 text-white hover:bg-rose-700 transition"
+              title="Finish prep early and start recording now"
+            >
+              <span>🎙️ Record Now</span>
+            </button>
+            <button
+              id="reset-prep-btn"
+              type="button"
+              class="px-3.5 py-3 rounded-xl font-medium text-sm bg-stone-100 text-stone-700 hover:bg-stone-200 transition"
+              title="Reset prep timer"
+            >
+              Reset
+            </button>
+          </div>
+
+          <!-- 打字輸入答案草稿 -->
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <label for="draft-input" class="text-sm font-bold text-stone-700">
+                ✍️ Type Your Answer / Speaking Notes (Optional):
+              </label>
+              <button
+                id="insert-template-btn"
+                type="button"
+                class="text-xs font-medium text-teal-700 hover:text-teal-800 underline"
+              >
+                Insert Sentence Hint
+              </button>
+            </div>
+            <textarea
+              id="draft-input"
+              rows="3"
+              placeholder="Example: 安同可以搭捷運去學校，因為搭捷運又快又方便。"
+              class="w-full rounded-xl border border-stone-300 px-3.5 py-2.5 text-sm sm:text-base text-stone-800 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="text-xs text-stone-500 bg-stone-50 rounded-xl p-3 border border-stone-200/70">
+          💬 <strong>Sentence Helper:</strong> 「安同可以 [Transport] 去 [Place]。」 (You can also add a reason, e.g., 因為很方便 / 因為很快.)
+        </div>
+      </div>
+
+      <!-- 右側：步驟三（3分鐘錄音 + 回放 + 保存 + 自動批改） -->
+      <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-stone-200 flex flex-col justify-between space-y-4">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="text-base sm:text-lg font-bold text-stone-800 flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-100 text-rose-700 text-xs font-bold">3</span>
+              Speaking Recording (3 Mins) &amp; Speech Check
+            </h3>
+            <span id="rec-timer-display" class="font-mono text-xl sm:text-2xl font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-xl border border-rose-200">
+              03:00
+            </span>
+          </div>
+
+          <p class="text-xs sm:text-sm text-stone-600">
+            Click <strong>"Start Recording"</strong> to turn on your mic. You have <strong>3 minutes</strong> to answer using your selected picture(s). Click <strong>"Stop &amp; Check"</strong> when done.
+          </p>
+
+          <!-- 錄音 / 停止按鈕 -->
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button
+              id="start-rec-btn"
+              type="button"
+              class="flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm bg-rose-600 text-white hover:bg-rose-700 active:scale-[0.99] shadow-sm transition"
+            >
+              <span id="mic-icon">🎙️</span>
+              <span id="start-rec-label">Start Recording (3:00)</span>
+            </button>
+
+            <button
+              id="stop-rec-btn"
+              type="button"
+              disabled
+              class="inline-flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl font-bold text-sm bg-stone-800 text-white hover:bg-stone-900 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <span>⏹️ Stop &amp; Check</span>
+            </button>
+          </div>
+
+          <!-- 錄音狀態與即時語音辨識文字框 -->
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <label for="spoken-transcript" class="text-sm font-bold text-stone-700 flex items-center gap-2">
+                <span>🗣️ Speech-to-Text Transcript:</span>
+                <span id="rec-live-badge" class="hidden inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs bg-rose-100 text-rose-700 font-bold">
+                  <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
+                  <span>Recording...</span>
+                  <span class="inline-flex items-end gap-0.5 h-3 ml-1" aria-hidden="true">
+                    <span id="vol-bar-1" class="w-1 bg-rose-600 rounded-full transition-all duration-75" style="height: 30%"></span>
+                    <span id="vol-bar-2" class="w-1 bg-rose-600 rounded-full transition-all duration-75" style="height: 60%"></span>
+                    <span id="vol-bar-3" class="w-1 bg-rose-600 rounded-full transition-all duration-75" style="height: 40%"></span>
+                  </span>
+                </span>
+              </label>
+              <button
+                id="grade-now-btn"
+                type="button"
+                class="text-xs font-bold px-2.5 py-1 rounded-lg bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 transition"
+              >
+                ✨ Check Answer Now
+              </button>
+            </div>
+            <textarea
+              id="spoken-transcript"
+              rows="3"
+              placeholder="Speak into your microphone in Mandarin—your speech will appear here automatically (or you can type/edit your answer directly)."
+              class="w-full rounded-xl border border-stone-300 bg-stone-50/70 px-3.5 py-2.5 text-sm sm:text-base text-stone-800 focus:outline-none focus:ring-2 focus:ring-teal-500 transition"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- 回放按鈕與保存功能按鈕列 -->
+        <div class="pt-2 border-t border-stone-200 space-y-2.5">
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- 回放按鈕 -->
+            <button
+              id="playback-btn"
+              type="button"
+              disabled
+              class="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <span id="playback-icon">▶️</span>
+              <span id="playback-label">Play Recording</span>
+            </button>
+
+            <!-- 保存錄音音檔按鈕 (MP3) -->
+            <button
+              id="save-audio-btn"
+              type="button"
+              disabled
+              class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <span id="save-audio-icon">💾</span>
+              <span id="save-audio-label">Save Audio (MP3)</span>
+            </button>
+
+            <!-- 保存完整練習紀錄按鈕 -->
+            <button
+              id="save-record-btn"
+              type="button"
+              class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-sm bg-teal-700 text-white hover:bg-teal-800 transition"
+            >
+              <span>📥 Save Record</span>
+            </button>
+          </div>
+
+          <!-- 隱藏的音訊播放器（支援進度條檢視） -->
+          <audio id="audio-player" controls class="hidden w-full h-9 rounded-lg"></audio>
+        </div>
+      </div>
+    </section>
+
+    <!-- 批改結果與鼓勵回饋卡片 -->
+    <section id="feedback-card" class="hidden rounded-2xl p-5 sm:p-6 border-2 transition-all shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2.5">
+            <span id="feedback-icon" class="text-2xl">🎉</span>
+            <h3 id="feedback-title" class="text-lg sm:text-xl font-black">
+              Awesome! Your answer is correct!
+            </h3>
+          </div>
+          <p id="feedback-message" class="text-sm sm:text-base leading-relaxed"></p>
+          <div id="feedback-sample" class="mt-2 p-3 rounded-xl bg-white/80 border border-black/10 text-sm"></div>
+        </div>
+
+        <div class="flex sm:flex-col gap-2 shrink-0">
+          <button
+            id="celebrate-again-btn"
+            type="button"
+            class="hidden px-4 py-2 rounded-xl text-sm font-bold bg-amber-400 text-stone-900 hover:bg-amber-300 shadow-sm transition"
+          >
+            🎊 Celebrate Again
+          </button>
+          <button
+            id="feedback-next-btn"
+            type="button"
+            class="px-4 py-2 rounded-xl text-sm font-bold bg-teal-700 text-white hover:bg-teal-800 shadow-sm transition"
+          >
+            Next Question →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 已保存的練習紀錄列表 -->
+    <section class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-stone-200">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h3 class="text-base sm:text-lg font-bold text-stone-800 flex items-center gap-2">
+          <span>📚 Saved Practice Records</span>
+          <span id="saved-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-100 text-teal-800">
+            0 Saved
+          </span>
+        </h3>
+        <button
+          id="export-all-txt-btn"
+          type="button"
+          class="hidden text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-xl bg-stone-800 text-white hover:bg-stone-700 transition"
+        >
+          📄 Export All Notes (.txt)
+        </button>
+      </div>
+      <div id="saved-records-list" class="space-y-3 text-sm text-stone-500">
+        <p class="py-4 text-center bg-stone-50 rounded-xl border border-dashed border-stone-200">
+          No saved records yet. After answering, click "Save Record" to keep your work here for playback or MP3 download!
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 輕量提示訊息 Toast（取代 alert） -->
+  <div
+    id="toast-box"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden items-center gap-2 px-4 py-3 rounded-xl bg-stone-900 text-white text-sm font-medium shadow-xl transition-all"
+  >
+    <span id="toast-icon">ℹ️</span>
+    <span id="toast-text">Notification</span>
+  </div>
+
+  <script>
+    /**
+     * 1. 交通工具原始圖片與詞彙資料庫
+     * 嚴格使用使用者提供的 8 張原圖網址，不做任何修改
+     */
+    const TRANSPORTS = [
+      {
+        id: 'train',
+        label: '坐火車',
+        altLabel: '搭火車 / Take a train',
+        imgUrl: 'https://iili.io/o3VtWjS.png',
+        keywords: ['火車', '坐火車', '搭火車', '台鐵', '臺鐵']
+      },
+      {
+        id: 'hsr',
+        label: '坐高鐵',
+        altLabel: '搭高鐵 / Take the HSR',
+        imgUrl: 'https://iili.io/o3VmTyx.png',
+        keywords: ['高鐵', '坐高鐵', '搭高鐵', '高速鐵路']
+      },
+      {
+        id: 'bus',
+        label: '坐公車',
+        altLabel: '搭公車 / Take a bus',
+        imgUrl: 'https://iili.io/o3W9S9a.png',
+        keywords: ['公車', '坐公車', '搭公車', '巴士', '客運']
+      },
+      {
+        id: 'mrt',
+        label: '搭捷運',
+        altLabel: '坐捷運 / Take the MRT',
+        imgUrl: 'https://iili.io/o3WHwbf.png',
+        keywords: ['捷運', '搭捷運', '坐捷運', '地鐵']
+      },
+      {
+        id: 'scooter',
+        label: '騎摩托車',
+        altLabel: '騎機車 / Ride a scooter',
+        imgUrl: 'https://iili.io/o3W3dzb.png',
+        keywords: ['摩托車', '機車', '騎摩托車', '騎機車', '騎車']
+      },
+      {
+        id: 'taxi',
+        label: '坐計程車',
+        altLabel: '搭計程車 / Take a taxi',
+        imgUrl: 'https://iili.io/o3WfDZu.png',
+        keywords: ['計程車', '坐計程車', '搭計程車', '出租車', '小黃']
+      },
+      {
+        id: 'ridehail',
+        label: '坐網約車',
+        altLabel: '搭網約車 / Ride-hailing',
+        imgUrl: 'https://iili.io/o3WT2hN.png',
+        keywords: ['網約車', '坐網約車', '搭網約車', '叫車', '多元計程車', 'uber', '優步', '開車']
+      },
+      {
+        id: 'friendcar',
+        label: '搭朋友的便車',
+        altLabel: 'Get a ride from a friend',
+        imgUrl: 'https://iili.io/o3WuISa.png',
+        keywords: ['便車', '朋友', '搭便車', '朋友的車', '順風車', '載']
+      }
+    ];
+
+    /**
+     * 2. 四道課本練習題目（第一頁只出現一道題）
+     */
+    const QUESTIONS = [
+      {
+        id: 1,
+        destination: '學校',
+        destinationEn: 'School',
+        titleHtml: '安同可以怎麼去<span class="text-teal-700 underline decoration-amber-400 decoration-4 underline-offset-4">學校</span>？',
+        plainTitle: '安同可以怎麼去學校？',
+        destKeywords: ['學校', '上學', '去'],
+        sampleAnswer: '安同可以搭捷運去學校，也可以坐公車或騎摩托車去學校。'
+      },
+      {
+        id: 2,
+        destination: '臺南',
+        destinationEn: 'Tainan',
+        titleHtml: '安同可以怎麼去<span class="text-teal-700 underline decoration-amber-400 decoration-4 underline-offset-4">臺南</span>？',
+        plainTitle: '安同可以怎麼去臺南？',
+        destKeywords: ['臺南', '台南', '去'],
+        sampleAnswer: '安同可以坐高鐵去臺南，也可以坐火車去臺南。'
+      },
+      {
+        id: 3,
+        destination: '故宮',
+        destinationEn: 'the National Palace Museum',
+        titleHtml: '安同可以怎麼去<span class="text-teal-700 underline decoration-amber-400 decoration-4 underline-offset-4">故宮</span>？',
+        plainTitle: '安同可以怎麼去故宮？',
+        destKeywords: ['故宮', '博物院', '去'],
+        sampleAnswer: '安同可以搭捷運再轉坐公車去故宮，也可以坐計程車或網約車去故宮。'
+      },
+      {
+        id: 4,
+        destination: '朋友家',
+        destinationEn: "a friend's house",
+        titleHtml: '安同可以怎麼去<span class="text-teal-700 underline decoration-amber-400 decoration-4 underline-offset-4">朋友家</span>？',
+        plainTitle: '安同可以怎麼去朋友家？',
+        destKeywords: ['朋友家', '朋友', '去'],
+        sampleAnswer: '安同可以搭朋友的便車去朋友家，也可以騎摩托車或坐公車去朋友家。'
+      }
+    ];
+
+    /**
+     * 3. 應用程式狀態管理（每題獨立保存勾選、草稿、錄音與批改狀態）
+     */
+    const state = {
+      currentIndex: 0,
+      answers: QUESTIONS.map(() => ({
+        selectedIds: [],
+        draftText: '',
+        transcriptText: '',
+        pcmSamples: null,
+        sampleRate: 44100,
+        wavBlob: null,
+        mp3Blob: null,
+        audioUrl: null,
+        isPassed: false,
+        feedback: null
+      })),
+      prepSecondsLeft: 120, // 2 分鐘
+      prepInterval: null,
+      recSecondsLeft: 180,  // 3 分鐘
+      recInterval: null,
+      isRecording: false,
+      micStream: null,
+      audioContext: null,
+      scriptProcessor: null,
+      micSourceNode: null,
+      pcmBuffers: [],
+      recordingSampleRate: 44100,
+      recognition: null,
+      savedRecords: []
+    };
+
+    // DOM 元素參考
+    const els = {
+      toggleGrammarBtn: document.getElementById('toggle-grammar-btn'),
+      grammarPanel: document.getElementById('grammar-panel'),
+      grammarArrow: document.getElementById('grammar-arrow'),
+      questionBadge: document.getElementById('question-badge'),
+      questionStatusPill: document.getElementById('question-status-pill'),
+      prevBtn: document.getElementById('prev-btn'),
+      nextBtn: document.getElementById('next-btn'),
+      progressBar: document.getElementById('progress-bar'),
+      questionText: document.getElementById('question-text'),
+      selectedSummaryBadge: document.getElementById('selected-summary-badge'),
+      transportGrid: document.getElementById('transport-grid'),
+      prepTimerDisplay: document.getElementById('prep-timer-display'),
+      startPrepBtn: document.getElementById('start-prep-btn'),
+      skipPrepBtn: document.getElementById('skip-prep-btn'),
+      resetPrepBtn: document.getElementById('reset-prep-btn'),
+      draftInput: document.getElementById('draft-input'),
+      insertTemplateBtn: document.getElementById('insert-template-btn'),
+      recTimerDisplay: document.getElementById('rec-timer-display'),
+      startRecBtn: document.getElementById('start-rec-btn'),
+      startRecLabel: document.getElementById('start-rec-label'),
+      stopRecBtn: document.getElementById('stop-rec-btn'),
+      recLiveBadge: document.getElementById('rec-live-badge'),
+      volBar1: document.getElementById('vol-bar-1'),
+      volBar2: document.getElementById('vol-bar-2'),
+      volBar3: document.getElementById('vol-bar-3'),
+      spokenTranscript: document.getElementById('spoken-transcript'),
+      gradeNowBtn: document.getElementById('grade-now-btn'),
+      playbackBtn: document.getElementById('playback-btn'),
+      playbackIcon: document.getElementById('playback-icon'),
+      playbackLabel: document.getElementById('playback-label'),
+      saveAudioBtn: document.getElementById('save-audio-btn'),
+      saveAudioIcon: document.getElementById('save-audio-icon'),
+      saveAudioLabel: document.getElementById('save-audio-label'),
+      saveRecordBtn: document.getElementById('save-record-btn'),
+      audioPlayer: document.getElementById('audio-player'),
+      feedbackCard: document.getElementById('feedback-card'),
+      feedbackIcon: document.getElementById('feedback-icon'),
+      feedbackTitle: document.getElementById('feedback-title'),
+      feedbackMessage: document.getElementById('feedback-message'),
+      feedbackSample: document.getElementById('feedback-sample'),
+      celebrateAgainBtn: document.getElementById('celebrate-again-btn'),
+      feedbackNextBtn: document.getElementById('feedback-next-btn'),
+      savedCountBadge: document.getElementById('saved-count-badge'),
+      exportAllTxtBtn: document.getElementById('export-all-txt-btn'),
+      savedRecordsList: document.getElementById('saved-records-list'),
+      toastBox: document.getElementById('toast-box'),
+      toastIcon: document.getElementById('toast-icon'),
+      toastText: document.getElementById('toast-text')
+    };
+
+    // 顯示輕量提示框（取代 alert）
+    let toastTimer = null;
+    function showToast(message, icon = 'ℹ️') {
+      els.toastText.textContent = message;
+      els.toastIcon.textContent = icon;
+      els.toastBox.classList.remove('hidden');
+      els.toastBox.classList.add('flex');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        els.toastBox.classList.add('hidden');
+        els.toastBox.classList.remove('flex');
+      }, 3400);
+    }
+
+    // 格式化秒數為 MM:SS
+    function formatTime(totalSeconds) {
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    // 簡單的簡轉繁常用字對應（讓語音辨識結果更貼近繁體中文）
+    function normalizeToTraditional(text) {
+      if (!text) return '';
+      return text
+        .replace(/高铁/g, '高鐵')
+        .replace(/火车/g, '火車')
+        .replace(/地铁/g, '捷運')
+        .replace(/捷运/g, '捷運')
+        .replace(/公车/g, '公車')
+        .replace(/摩托车/g, '摩托車')
+        .replace(/机车/g, '機車')
+        .replace(/计程车/g, '計程車')
+        .replace(/出租车/g, '計程車')
+        .replace(/网约车/g, '網約車')
+        .replace(/便车/g, '便車')
+        .replace(/学校/g, '學校')
+        .replace(/台南/g, '臺南')
+        .replace(/故宫/g, '故宮')
+        .replace(/怎么/g, '怎麼');
+    }
+
+    /**
+     * 渲染當前題目與圖片選項
+     */
+    function renderCurrentQuestion() {
+      const q = QUESTIONS[state.currentIndex];
+      const ans = state.answers[state.currentIndex];
+
+      // 更新題號與進度條
+      els.questionBadge.textContent = `Question ${q.id} / ${QUESTIONS.length}`;
+      els.progressBar.style.width = `${((state.currentIndex + 1) / QUESTIONS.length) * 100}%`;
+      els.prevBtn.disabled = state.currentIndex === 0;
+      els.nextBtn.disabled = state.currentIndex === QUESTIONS.length - 1;
+
+      // 更新完成狀態標籤
+      if (ans.isPassed) {
+        els.questionStatusPill.textContent = '✅ Completed';
+        els.questionStatusPill.className = 'px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold';
+      } else {
+        els.questionStatusPill.textContent = 'In Progress';
+        els.questionStatusPill.className = 'px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-600 text-xs font-medium';
+      }
+
+      // 渲染單道題目標題
+      els.questionText.innerHTML = q.titleHtml;
+
+      // 恢復草稿與語音文字
+      els.draftInput.value = ans.draftText;
+      els.spokenTranscript.value = ans.transcriptText;
+
+      // 恢復本題錄音音檔播放器狀態
+      if (ans.audioUrl) {
+        els.audioPlayer.src = ans.audioUrl;
+        els.audioPlayer.volume = 1.0;
+        els.audioPlayer.muted = false;
+        els.audioPlayer.classList.remove('hidden');
+        els.playbackBtn.disabled = false;
+        els.saveAudioBtn.disabled = false;
+      } else {
+        els.audioPlayer.pause();
+        els.audioPlayer.removeAttribute('src');
+        els.audioPlayer.classList.add('hidden');
+        els.playbackBtn.disabled = true;
+        els.saveAudioBtn.disabled = true;
+      }
+      els.playbackIcon.textContent = '▶️';
+      els.playbackLabel.textContent = 'Play Recording';
+
+      // 渲染圖片網格
+      renderTransportGrid();
+
+      // 恢復回饋卡片
+      if (ans.feedback) {
+        renderFeedbackCard(ans.feedback);
+      } else {
+        els.feedbackCard.classList.add('hidden');
+      }
+    }
+
+    /**
+     * 渲染 8 張原始交通工具圖片（保留原始比例與完整圖片內容）
+     */
+    function renderTransportGrid() {
+      const ans = state.answers[state.currentIndex];
+      els.transportGrid.innerHTML = '';
+
+      TRANSPORTS.forEach((item) => {
+        const isSelected = ans.selectedIds.includes(item.id);
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+        card.className = `transport-card group relative flex flex-col items-center rounded-2xl border-2 p-2.5 sm:p-3 text-left focus:outline-none focus:ring-2 focus:ring-teal-500 ${
+          isSelected
+            ? 'selected border-teal-600 bg-teal-50/80'
+            : 'border-stone-200 bg-white hover:border-teal-300'
+        }`;
+
+        card.innerHTML = `
+          <!-- 右上角勾選標記 -->
+          <span class="absolute top-2 right-2 z-10 inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shadow-sm transition ${
+            isSelected
+              ? 'bg-teal-600 text-white scale-105'
+              : 'bg-white/90 text-stone-400 border border-stone-300 group-hover:border-teal-400'
+          }">
+            ${isSelected ? '✓' : ''}
+          </span>
+
+          <!-- 原圖容器（使用 object-contain 完整呈現原圖不裁切、不變形） -->
+          <div class="w-full aspect-square rounded-xl overflow-hidden bg-stone-50 flex items-center justify-center mb-2 border border-stone-100">
+            <img
+              src="${item.imgUrl}"
+              alt="${item.label}"
+              class="w-full h-full object-contain"
+              loading="lazy"
+            />
+          </div>
+
+          <!-- 交通方式詞彙標籤 -->
+          <div class="w-full text-center">
+            <span class="block text-sm sm:text-base font-bold ${
+              isSelected ? 'text-teal-800' : 'text-stone-800'
+            }">
+              ${item.label}
+            </span>
+            <span class="block text-[11px] text-stone-500 mt-0.5">
+              ${item.altLabel}
+            </span>
+          </div>
+        `;
+
+        card.addEventListener('click', () => toggleTransportSelection(item.id));
+        els.transportGrid.appendChild(card);
+      });
+
+      // 更新已選圖片摘要徽章
+      if (ans.selectedIds.length === 0) {
+        els.selectedSummaryBadge.textContent = 'No picture selected';
+        els.selectedSummaryBadge.className = 'text-xs sm:text-sm font-medium px-3 py-1.5 rounded-xl bg-stone-100 text-stone-600';
+      } else {
+        const names = ans.selectedIds
+          .map((id) => TRANSPORTS.find((t) => t.id === id)?.label)
+          .filter(Boolean);
+        els.selectedSummaryBadge.textContent = `Selected: ${names.join('、')}`;
+        els.selectedSummaryBadge.className = 'text-xs sm:text-sm font-bold px-3 py-1.5 rounded-xl bg-teal-100 text-teal-800';
+      }
+    }
+
+    /**
+     * 切換圖片勾選狀態
+     */
+    function toggleTransportSelection(transportId) {
+      const ans = state.answers[state.currentIndex];
+      const idx = ans.selectedIds.indexOf(transportId);
+      if (idx >= 0) {
+        ans.selectedIds.splice(idx, 1);
+      } else {
+        ans.selectedIds.push(transportId);
+      }
+      renderTransportGrid();
+    }
+
+    /**
+     * 預先請求並保留麥克風串流，確保準備時間結束自動開錄時不會被瀏覽器權限阻擋
+     */
+    async function ensureMicrophoneStream() {
+      if (state.micStream && state.micStream.active) {
+        return state.micStream;
+      }
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+        state.micStream = stream;
+        return stream;
+      }
+      throw new Error('Microphone access is not supported in this browser.');
+    }
+
+    /**
+     * 2 分鐘準備計時器控制（結束時自動開啟錄音鍵）
+     */
+    async function startPrepTimer() {
+      if (state.prepInterval) return;
+
+      // 若正在錄音則先停止
+      if (state.isRecording) {
+        stopRecording(false);
+      }
+
+      // 在使用者點擊準備時間時預先取得麥克風權限，確保 2 分鐘結束自動啟動錄音時順暢無阻
+      try {
+        await ensureMicrophoneStream();
+      } catch (e) {
+        showToast('Please allow microphone access so recording can start automatically after prep time.', '🎙️');
+      }
+
+      showToast('2-minute prep timer started! Recording will begin automatically when time is up.', '⏱️');
+      els.startPrepBtn.disabled = true;
+      els.startPrepBtn.classList.add('opacity-60');
+      els.skipPrepBtn.classList.remove('hidden');
+
+      state.prepInterval = setInterval(() => {
+        state.prepSecondsLeft -= 1;
+        els.prepTimerDisplay.textContent = formatTime(Math.max(0, state.prepSecondsLeft));
+
+        if (state.prepSecondsLeft <= 0) {
+          stopPrepTimer();
+          playGentleBeep(660, 0.22);
+          showToast('⏰ Prep time is up! Recording has started automatically—please speak now!', '🎙️');
+          // 自動觸發開啟錄音鍵
+          startRecording(true);
+        }
+      }, 1000);
+    }
+
+    function stopPrepTimer() {
+      if (state.prepInterval) {
+        clearInterval(state.prepInterval);
+        state.prepInterval = null;
+      }
+      els.startPrepBtn.disabled = false;
+      els.startPrepBtn.classList.remove('opacity-60');
+      els.skipPrepBtn.classList.add('hidden');
+    }
+
+    function resetPrepTimer() {
+      stopPrepTimer();
+      state.prepSecondsLeft = 120;
+      els.prepTimerDisplay.textContent = formatTime(120);
+    }
+
+    /**
+     * 初始化語音辨識（繁體中文 zh-TW）
+     */
+    function setupSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return null;
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'zh-TW';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      let finalTranscript = els.spokenTranscript.value ? els.spokenTranscript.value + ' ' : '';
+
+      recognition.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const piece = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += piece;
+          } else {
+            interim += piece;
+          }
+        }
+        const combined = normalizeToTraditional((finalTranscript + interim).trim());
+        els.spokenTranscript.value = combined;
+        state.answers[state.currentIndex].transcriptText = combined;
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
+          showToast('Speech recognition hiccup—your audio is still recording, or you can type your answer!', '🎙️');
+        }
+      };
+
+      recognition.onend = () => {
+        // 若仍在 3 分鐘錄音中，自動續接辨識
+        if (state.isRecording) {
+          try {
+            recognition.start();
+          } catch (e) {
+            // 忽略重複啟動錯誤
+          }
+        }
+      };
+
+      return recognition;
+    }
+
+    /**
+     * 將多段 Float32Array 合併為單一 Float32Array
+     */
+    function mergeFloat32Arrays(chunks) {
+      const totalLength = chunks.reduce((acc, arr) => acc + arr.length, 0);
+      const result = new Float32Array(totalLength);
+      let offset = 0;
+      for (const chunk of chunks) {
+        result.set(chunk, offset);
+        offset += chunk.length;
+      }
+      return result;
+    }
+
+    /**
+     * 將 Float32Array PCM 轉換為標準 WAV Blob（確保 HTML5 <audio> 回放 100% 清晰有聲）
+     */
+    function encodePCMToWavBlob(samples, sampleRate) {
+      const buffer = new ArrayBuffer(44 + samples.length * 2);
+      const view = new DataView(buffer);
+
+      const writeString = (offset, str) => {
+        for (let i = 0; i < str.length; i++) {
+          view.setUint8(offset + i, str.charCodeAt(i));
+        }
+      };
+
+      writeString(0, 'RIFF');
+      view.setUint32(4, 36 + samples.length * 2, true);
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true); // PCM chunk size
+      view.setUint16(20, 1, true);  // PCM format
+      view.setUint16(22, 1, true);  // 單聲道 Mono
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true);
+      view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true); // 16-bit
+      writeString(36, 'data');
+      view.setUint32(40, samples.length * 2, true);
+
+      let offset = 44;
+      for (let i = 0; i < samples.length; i++, offset += 2) {
+        const s = Math.max(-1, Math.min(1, samples[i]));
+        view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      }
+
+      return new Blob([view], { type: 'audio/wav' });
+    }
+
+    /**
+     * 使用 lamejs 將 Float32Array PCM 編碼為標準 MP3 Blob (.mp3)
+     */
+    function encodePCMToMp3Blob(samples, sampleRate) {
+      if (typeof lamejs === 'undefined' || !lamejs.Mp3Encoder) {
+        throw new Error('MP3 encoder is still loading');
+      }
+      const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 128);
+      const int16Samples = new Int16Array(samples.length);
+      for (let i = 0; i < samples.length; i++) {
+        const s = Math.max(-1, Math.min(1, samples[i]));
+        int16Samples[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+      }
+
+      const mp3Data = [];
+      const sampleBlockSize = 1152;
+      for (let i = 0; i < int16Samples.length; i += sampleBlockSize) {
+        const chunk = int16Samples.subarray(i, i + sampleBlockSize);
+        const mp3buf = mp3Encoder.encodeBuffer(chunk);
+        if (mp3buf.length > 0) {
+          mp3Data.push(mp3buf);
+        }
+      }
+      const mp3End = mp3Encoder.flush();
+      if (mp3End.length > 0) {
+        mp3Data.push(mp3End);
+      }
+
+      return new Blob(mp3Data, { type: 'audio/mp3' });
+    }
+
+    /**
+     * 3 分鐘錄音與即時語音辨識啟動
+     * @param {boolean} isAutoTriggered 是否由準備時間結束自動觸發
+     */
+    async function startRecording(isAutoTriggered = false) {
+      const currentAns = state.answers[state.currentIndex];
+      if (!isAutoTriggered && currentAns.selectedIds.length === 0) {
+        showToast('Please select at least one transport picture above before recording!', '👆');
+        return;
+      }
+
+      // 停止準備計時
+      stopPrepTimer();
+
+      state.isRecording = true;
+      state.recSecondsLeft = 180;
+      state.pcmBuffers = [];
+      els.recTimerDisplay.textContent = formatTime(180);
+
+      // 更新按鈕 UI
+      els.startRecBtn.disabled = true;
+      els.startRecBtn.classList.add('recording-pulse');
+      els.startRecLabel.textContent = 'Recording...';
+      els.stopRecBtn.disabled = false;
+      els.recLiveBadge.classList.remove('hidden');
+
+      // 1. 使用 Web Audio API 直接擷取麥克風 PCM 音訊取樣（徹底解決回放無聲問題）
+      try {
+        const stream = await ensureMicrophoneStream();
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioCtx();
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+        state.audioContext = audioCtx;
+        state.recordingSampleRate = audioCtx.sampleRate;
+
+        const source = audioCtx.createMediaStreamSource(stream);
+        const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+
+        processor.onaudioprocess = (e) => {
+          if (!state.isRecording) return;
+          const inputData = e.inputBuffer.getChannelData(0);
+          state.pcmBuffers.push(new Float32Array(inputData));
+
+          // 計算即時音量更新音波視覺條
+          let sum = 0;
+          for (let i = 0; i < inputData.length; i += 16) {
+            sum += inputData[i] * inputData[i];
+          }
+          const rms = Math.sqrt(sum / (inputData.length / 16));
+          const level = Math.min(100, Math.max(20, Math.round(rms * 450)));
+          els.volBar1.style.height = `${Math.max(20, level * 0.7)}%`;
+          els.volBar2.style.height = `${level}%`;
+          els.volBar3.style.height = `${Math.max(25, level * 0.85)}%`;
+        };
+
+        // 連接至靜音 GainNode 以維持 ScriptProcessorNode 持續運作但不產生回授雜音
+        const silentGain = audioCtx.createGain();
+        silentGain.gain.value = 0;
+        source.connect(processor);
+        processor.connect(silentGain);
+        silentGain.connect(audioCtx.destination);
+
+        state.micSourceNode = source;
+        state.scriptProcessor = processor;
+      } catch (err) {
+        showToast('Could not access microphone. Please check your browser mic permissions!', '🎙️');
+      }
+
+      // 2. 並行啟動 SpeechRecognition 語音轉繁體文字
+      try {
+        state.recognition = setupSpeechRecognition();
+        if (state.recognition) {
+          state.recognition.start();
+        }
+      } catch (e) {
+        // 忽略不支援環境
+      }
+
+      // 3. 啟動 3 分鐘倒數計時器
+      state.recInterval = setInterval(() => {
+        state.recSecondsLeft -= 1;
+        els.recTimerDisplay.textContent = formatTime(Math.max(0, state.recSecondsLeft));
+        if (state.recSecondsLeft <= 0) {
+          stopRecording(true);
+        }
+      }, 1000);
+
+      if (!isAutoTriggered) {
+        showToast('Microphone is on! Use your selected picture(s) to answer in Mandarin.', '🎙️');
+      }
+    }
+
+    /**
+     * 停止錄音、封裝可清晰回放的 WAV 音訊並選擇是否立即批改
+     */
+    function stopRecording(shouldGrade = true) {
+      state.isRecording = false;
+
+      if (state.recInterval) {
+        clearInterval(state.recInterval);
+        state.recInterval = null;
+      }
+
+      // 斷開 Web Audio 節點並封裝錄製到的 PCM 音訊
+      if (state.scriptProcessor) {
+        try {
+          state.scriptProcessor.disconnect();
+        } catch (e) {}
+        state.scriptProcessor = null;
+      }
+      if (state.micSourceNode) {
+        try {
+          state.micSourceNode.disconnect();
+        } catch (e) {}
+        state.micSourceNode = null;
+      }
+      if (state.audioContext) {
+        try {
+          state.audioContext.close();
+        } catch (e) {}
+        state.audioContext = null;
+      }
+      if (state.micStream) {
+        state.micStream.getTracks().forEach((track) => track.stop());
+        state.micStream = null;
+      }
+
+      if (state.recognition) {
+        try {
+          state.recognition.stop();
+        } catch (e) {}
+      }
+
+      // 將錄到的 PCM 樣本轉為標準 WAV Blob 供立即回放，並重置 MP3 快取
+      if (state.pcmBuffers.length > 0) {
+        const mergedSamples = mergeFloat32Arrays(state.pcmBuffers);
+        const wavBlob = encodePCMToWavBlob(mergedSamples, state.recordingSampleRate);
+        const url = URL.createObjectURL(wavBlob);
+
+        const ans = state.answers[state.currentIndex];
+        if (ans.audioUrl) {
+          URL.revokeObjectURL(ans.audioUrl);
+        }
+        ans.pcmSamples = mergedSamples;
+        ans.sampleRate = state.recordingSampleRate;
+        ans.wavBlob = wavBlob;
+        ans.mp3Blob = null; // 待下載 MP3 時即時編碼
+        ans.audioUrl = url;
+
+        els.audioPlayer.src = url;
+        els.audioPlayer.volume = 1.0;
+        els.audioPlayer.muted = false;
+        els.audioPlayer.load();
+        els.audioPlayer.classList.remove('hidden');
+        els.playbackBtn.disabled = false;
+        els.saveAudioBtn.disabled = false;
+      }
+
+      // 恢復按鈕 UI
+      els.startRecBtn.disabled = false;
+      els.startRecBtn.classList.remove('recording-pulse');
+      els.startRecLabel.textContent = 'Record Again (3:00)';
+      els.stopRecBtn.disabled = true;
+      els.recLiveBadge.classList.add('hidden');
+
+      if (shouldGrade) {
+        setTimeout(() => {
+          gradeCurrentAnswer();
+        }, 250);
+      }
+    }
+
+    /**
+     * 4. 寬容合理的智能批改引擎
+     * 只要學生有勾選圖片，並說出（或打出）合理的交通方式與句意，即判定為正確並撒花慶祝！
+     */
+    function gradeCurrentAnswer() {
+      const q = QUESTIONS[state.currentIndex];
+      const ans = state.answers[state.currentIndex];
+      ans.draftText = els.draftInput.value.trim();
+      ans.transcriptText = els.spokenTranscript.value.trim();
+
+      if (ans.selectedIds.length === 0) {
+        showToast('Please select at least one transport picture before checking your answer!', '👆');
+        return;
+      }
+
+      // 綜合語音辨識結果與草稿內容進行評估
+      const combinedText = `${ans.transcriptText} ${ans.draftText}`.trim();
+      const normalized = normalizeToTraditional(combinedText).toLowerCase();
+
+      if (!normalized) {
+        // 若有錄製音訊但瀏覽器未轉出文字，給予友善提示
+        if (ans.wavBlob) {
+          const selectedNames = ans.selectedIds
+            .map((id) => TRANSPORTS.find((t) => t.id === id)?.label)
+            .join('、');
+          const res = {
+            passed: true,
+            title: '🎉 Speaking Recorded! Great Job!',
+            message: `You selected 「${selectedNames}」 and recorded your spoken answer for 「${q.plainTitle}」. Click "Play Recording" anytime to listen to your pronunciation!`,
+            sample: `Sample Answer: ${q.sampleAnswer}`
+          };
+          ans.isPassed = true;
+          ans.feedback = res;
+          renderCurrentQuestion();
+          launchConfetti();
+          playCelebrationSound();
+          return;
+        }
+
+        const res = {
+          passed: false,
+          title: 'No answer detected yet!',
+          message: 'Please click "Start Recording" and speak your full sentence into the mic, or type your answer in the draft box first.',
+          sample: `Hint: 安同可以［${ans.selectedIds.map((id) => TRANSPORTS.find((t) => t.id === id)?.label).join(' / ')}］去${q.destination}。`
+        };
+        ans.feedback = res;
+        renderFeedbackCard(res);
+        return;
+      }
+
+      // 檢查是否包含任何合理的交通工具詞彙（優先比對已勾選的圖片）
+      const selectedTransports = ans.selectedIds
+        .map((id) => TRANSPORTS.find((t) => t.id === id))
+        .filter(Boolean);
+
+      const matchedSelected = selectedTransports.filter((t) =>
+        t.keywords.some((kw) => normalized.includes(kw.toLowerCase()))
+      );
+
+      const matchedAnyTransport = TRANSPORTS.filter((t) =>
+        t.keywords.some((kw) => normalized.includes(kw.toLowerCase()))
+      );
+
+      // 只要合理提到交通工具或包含「去 / 可以 / 坐 / 搭 / 騎」等合理表達即判定為正確
+      const hasActionOrDest =
+        q.destKeywords.some((kw) => normalized.includes(kw.toLowerCase())) ||
+        ['可以', '坐', '搭', '騎', '開車', '載'].some((w) => normalized.includes(w));
+
+      if (matchedSelected.length > 0 || (matchedAnyTransport.length > 0 && hasActionOrDest)) {
+        const usedLabels = (matchedSelected.length > 0 ? matchedSelected : matchedAnyTransport)
+          .map((t) => t.label)
+          .join('、');
+
+        const res = {
+          passed: true,
+          title: '🎉 Awesome! Your answer is correct—keep it up!',
+          message: `You clearly explained how Antong can go to 「${q.destination}」 using 「${usedLabels}」. Your grammar structure "Subject + 可以 + Transport + 去 + Place" is spot on!`,
+          sample: `Sample Answer: ${q.sampleAnswer}`
+        };
+        ans.isPassed = true;
+        ans.feedback = res;
+        renderCurrentQuestion();
+        launchConfetti();
+        playCelebrationSound();
+      } else {
+        const expectedLabels = selectedTransports.map((t) => t.label).join('、');
+        const res = {
+          passed: false,
+          title: 'Almost there—give it another try!',
+          message: `You selected 「${expectedLabels}」. Try saying that transport word together with the destination 「${q.destination}」 in a full sentence!`,
+          sample: `Try saying: 「安同可以${selectedTransports[0].label}去${q.destination}。」`
+        };
+        ans.feedback = res;
+        renderFeedbackCard(res);
+      }
+    }
+
+    /**
+     * 渲染批改回饋卡片
+     */
+    function renderFeedbackCard(fb) {
+      els.feedbackCard.classList.remove('hidden');
+      if (fb.passed) {
+        els.feedbackCard.className =
+          'rounded-2xl p-5 sm:p-6 border-2 border-emerald-400 bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-950 shadow-sm transition-all';
+        els.feedbackIcon.textContent = '🎊';
+        els.celebrateAgainBtn.classList.remove('hidden');
+      } else {
+        els.feedbackCard.className =
+          'rounded-2xl p-5 sm:p-6 border-2 border-amber-300 bg-amber-50 text-amber-950 shadow-sm transition-all';
+        els.feedbackIcon.textContent = '💡';
+        els.celebrateAgainBtn.classList.add('hidden');
+      }
+
+      els.feedbackTitle.textContent = fb.title;
+      els.feedbackMessage.textContent = fb.message;
+      els.feedbackSample.textContent = fb.sample;
+
+      if (state.currentIndex === QUESTIONS.length - 1) {
+        els.feedbackNextBtn.textContent = '🎉 All Questions Done';
+      } else {
+        els.feedbackNextBtn.textContent = 'Next Question →';
+      }
+    }
+
+    /**
+     * 5. 回放與保存功能（確保清晰有聲回放 + MP3 格式保存）
+     */
+    function togglePlayback() {
+      if (!els.audioPlayer.src) {
+        showToast('No recording available to play yet!', '⚠️');
+        return;
+      }
+      els.audioPlayer.muted = false;
+      els.audioPlayer.volume = 1.0;
+
+      if (els.audioPlayer.paused) {
+        if (els.audioPlayer.ended) {
+          els.audioPlayer.currentTime = 0;
+        }
+        els.audioPlayer
+          .play()
+          .then(() => {
+            els.playbackIcon.textContent = '⏸️';
+            els.playbackLabel.textContent = 'Pause Playback';
+          })
+          .catch(() => {
+            showToast('Playback blocked—please click the play button on the audio bar below!', '🔊');
+          });
+      } else {
+        els.audioPlayer.pause();
+        els.playbackIcon.textContent = '▶️';
+        els.playbackLabel.textContent = 'Play Recording';
+      }
+    }
+
+    els.audioPlayer.addEventListener('ended', () => {
+      els.playbackIcon.textContent = '▶️';
+      els.playbackLabel.textContent = 'Play Recording';
+    });
+
+    function downloadCurrentAudioAsMp3() {
+      const q = QUESTIONS[state.currentIndex];
+      const ans = state.answers[state.currentIndex];
+      if (!ans.pcmSamples || ans.pcmSamples.length === 0) {
+        showToast('No recorded audio available to save yet!', '⚠️');
+        return;
+      }
+
+      els.saveAudioBtn.disabled = true;
+      els.saveAudioIcon.textContent = '⏳';
+      els.saveAudioLabel.textContent = 'Encoding MP3...';
+
+      setTimeout(() => {
+        try {
+          if (!ans.mp3Blob) {
+            ans.mp3Blob = encodePCMToMp3Blob(ans.pcmSamples, ans.sampleRate);
+          }
+          const mp3Url = URL.createObjectURL(ans.mp3Blob);
+          const a = document.createElement('a');
+          a.href = mp3Url;
+          a.download = `Q${q.id}_Antong_to_${q.destination}_Recording.mp3`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(mp3Url), 5000);
+          showToast('MP3 recording saved and downloaded (.mp3)!', '🎵');
+        } catch (err) {
+          showToast('MP3 encoder failed to load. Please check your connection and try again.', '⚠️');
+        } finally {
+          els.saveAudioBtn.disabled = false;
+          els.saveAudioIcon.textContent = '💾';
+          els.saveAudioLabel.textContent = 'Save Audio (MP3)';
+        }
+      }, 40);
+    }
+
+    function saveCurrentPracticeRecord() {
+      const q = QUESTIONS[state.currentIndex];
+      const ans = state.answers[state.currentIndex];
+      ans.draftText = els.draftInput.value.trim();
+      ans.transcriptText = els.spokenTranscript.value.trim();
+
+      const selectedNames = ans.selectedIds
+        .map((id) => TRANSPORTS.find((t) => t.id === id)?.label)
+        .filter(Boolean);
+
+      if (selectedNames.length === 0 && !ans.draftText && !ans.transcriptText && !ans.wavBlob) {
+        showToast('Please select a picture and record or type an answer before saving!', '⚠️');
+        return;
+      }
+
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+      const record = {
+        uid: Date.now(),
+        questionId: q.id,
+        questionTitle: q.plainTitle,
+        destination: q.destination,
+        selectedTransports: selectedNames.length > 0 ? selectedNames.join('、') : 'None selected',
+        spokenText: ans.transcriptText || '(No speech transcript)',
+        draftText: ans.draftText || '(No typed draft)',
+        isPassed: ans.isPassed,
+        audioUrl: ans.audioUrl,
+        pcmSamples: ans.pcmSamples,
+        sampleRate: ans.sampleRate,
+        savedAt: timeStr
+      };
+
+      state.savedRecords.unshift(record);
+      renderSavedRecords();
+      showToast(`Practice record for Question ${q.id} saved!`, '📥');
+    }
+
+    function renderSavedRecords() {
+      els.savedCountBadge.textContent = `${state.savedRecords.length} Saved`;
+
+      if (state.savedRecords.length === 0) {
+        els.exportAllTxtBtn.classList.add('hidden');
+        return;
+      }
+
+      els.exportAllTxtBtn.classList.remove('hidden');
+      els.savedRecordsList.innerHTML = '';
+
+      state.savedRecords.forEach((rec, idx) => {
+        const item = document.createElement('div');
+        item.className = 'p-4 rounded-xl border border-stone-200 bg-stone-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+
+        item.innerHTML = `
+          <div class="space-y-1 text-stone-700">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-bold text-stone-900">Q${rec.questionId}: ${rec.questionTitle}</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-bold ${
+                rec.isPassed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+              }">
+                ${rec.isPassed ? '✅ Passed' : '📝 Saved'}
+              </span>
+              <span class="text-xs text-stone-400">Saved at ${rec.savedAt}</span>
+            </div>
+            <p class="text-xs sm:text-sm"><strong>Selected Transport:</strong> ${rec.selectedTransports}</p>
+            <p class="text-xs sm:text-sm"><strong>Spoken Answer:</strong> ${rec.spokenText}</p>
+            ${rec.draftText !== '(No typed draft)' ? `<p class="text-xs text-stone-500"><strong>Typed Draft:</strong> ${rec.draftText}</p>` : ''}
+          </div>
+          ${
+            rec.audioUrl
+              ? `<div class="shrink-0 flex flex-col gap-1.5 items-end">
+                   <audio controls src="${rec.audioUrl}" class="h-8 w-52"></audio>
+                   <button type="button" data-rec-idx="${idx}" class="download-rec-mp3-btn text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition">
+                     💾 Download MP3 (.mp3)
+                   </button>
+                 </div>`
+              : ''
+          }
+        `;
+        els.savedRecordsList.appendChild(item);
+      });
+
+      // 綁定歷史紀錄中的 MP3 下載按鈕
+      document.querySelectorAll('.download-rec-mp3-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          const recIdx = Number(e.currentTarget.getAttribute('data-rec-idx'));
+          const targetRec = state.savedRecords[recIdx];
+          if (!targetRec || !targetRec.pcmSamples) return;
+          try {
+            const mp3Blob = encodePCMToMp3Blob(targetRec.pcmSamples, targetRec.sampleRate);
+            const url = URL.createObjectURL(mp3Blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Q${targetRec.questionId}_Antong_to_${targetRec.destination}_${targetRec.savedAt.replace(/:/g, '')}.mp3`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            showToast('MP3 recording downloaded!', '🎵');
+          } catch (err) {
+            showToast('MP3 encoding failed. Please try again.', '⚠️');
+          }
+        });
+      });
+    }
+
+    function exportAllRecordsToTxt() {
+      if (state.savedRecords.length === 0) return;
+      const lines = [
+        '=== Mandarin Grammar Speaking Practice: 「怎麼 (zěnme)」 Records ===',
+        `Exported at: ${new Date().toLocaleString('en-US')}`,
+        ''
+      ];
+
+      state.savedRecords.forEach((rec, i) => {
+        lines.push(`[Record ${i + 1}] ${rec.questionTitle} (${rec.savedAt})`);
+        lines.push(`  - Selected Transport: ${rec.selectedTransports}`);
+        lines.push(`  - Spoken Transcript: ${rec.spokenText}`);
+        lines.push(`  - Typed Draft: ${rec.draftText}`);
+        lines.push(`  - Status: ${rec.isPassed ? 'Passed' : 'Saved'}`);
+        lines.push('');
+      });
+
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Zenme_Speaking_Practice_Records.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('Practice notes exported (.txt)!', '📄');
+    }
+
+    /**
+     * 6. 撒花彩帶動畫與鼓勵音效（Web Audio API 合成，無外部音源）
+     */
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const ctx = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function resizeConfettiCanvas() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfettiCanvas);
+
+    function launchConfetti() {
+      resizeConfettiCanvas();
+      const colors = ['#0d9488', '#f59e0b', '#e11d48', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'];
+      confettiParticles = [];
+
+      for (let i = 0; i < 150; i++) {
+        confettiParticles.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * confettiCanvas.height - confettiCanvas.height,
+          w: Math.random() * 10 + 6,
+          h: Math.random() * 6 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          vx: (Math.random() - 0.5) * 4,
+          vy: Math.random() * 4 + 2.5,
+          angle: Math.random() * 360,
+          spin: (Math.random() - 0.5) * 10
+        });
+      }
+
+      if (confettiAnimId) cancelAnimationFrame(confettiAnimId);
+      animateConfetti();
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      let activeCount = 0;
+
+      confettiParticles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.angle += p.spin;
+        p.vy += 0.04; // 輕微重力
+
+        if (p.y < confettiCanvas.height + 30) {
+          activeCount++;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.angle * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        }
+      });
+
+      if (activeCount > 0) {
+        confettiAnimId = requestAnimationFrame(animateConfetti);
+      } else {
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+    }
+
+    function playGentleBeep(freq = 520, duration = 0.2) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioCtx();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // 忽略音訊限制
+      }
+    }
+
+    function playCelebrationSound() {
+      // 輕快上揚的三音和弦
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((freq, i) => {
+        setTimeout(() => playGentleBeep(freq, 0.22), i * 110);
+      });
+    }
+
+    /**
+     * 7. 事件監聽綁定與初始化
+     */
+    els.toggleGrammarBtn.addEventListener('click', () => {
+      const isHidden = els.grammarPanel.classList.contains('hidden');
+      els.grammarPanel.classList.toggle('hidden');
+      els.grammarArrow.textContent = isHidden ? '▲' : '▼';
+    });
+
+    els.prevBtn.addEventListener('click', () => {
+      if (state.isRecording) stopRecording(false);
+      resetPrepTimer();
+      if (state.currentIndex > 0) {
+        state.currentIndex -= 1;
+        renderCurrentQuestion();
+      }
+    });
+
+    els.nextBtn.addEventListener('click', () => {
+      if (state.isRecording) stopRecording(false);
+      resetPrepTimer();
+      if (state.currentIndex < QUESTIONS.length - 1) {
+        state.currentIndex += 1;
+        renderCurrentQuestion();
+      }
+    });
+
+    els.feedbackNextBtn.addEventListener('click', () => {
+      if (state.currentIndex < QUESTIONS.length - 1) {
+        if (state.isRecording) stopRecording(false);
+        resetPrepTimer();
+        state.currentIndex += 1;
+        renderCurrentQuestion();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        launchConfetti();
+        showToast('Congratulations! You have completed all 4 speaking questions!', '🏆');
+      }
+    });
+
+    els.startPrepBtn.addEventListener('click', startPrepTimer);
+    els.skipPrepBtn.addEventListener('click', () => {
+      stopPrepTimer();
+      startRecording(false);
+    });
+    els.resetPrepBtn.addEventListener('click', resetPrepTimer);
+
+    els.draftInput.addEventListener('input', (e) => {
+      state.answers[state.currentIndex].draftText = e.target.value;
+    });
+
+    els.spokenTranscript.addEventListener('input', (e) => {
+      state.answers[state.currentIndex].transcriptText = e.target.value;
+    });
+
+    els.insertTemplateBtn.addEventListener('click', () => {
+      const q = QUESTIONS[state.currentIndex];
+      const ans = state.answers[state.currentIndex];
+      const chosen =
+        ans.selectedIds.length > 0
+          ? ans.selectedIds.map((id) => TRANSPORTS.find((t) => t.id === id)?.label).join('或')
+          : '搭捷運';
+      const template = `安同可以${chosen}去${q.destination}，因為很方便。`;
+      els.draftInput.value = template;
+      ans.draftText = template;
+    });
+
+    els.startRecBtn.addEventListener('click', () => startRecording(false));
+    els.stopRecBtn.addEventListener('click', () => stopRecording(true));
+    els.gradeNowBtn.addEventListener('click', gradeCurrentAnswer);
+
+    els.playbackBtn.addEventListener('click', togglePlayback);
+    els.saveAudioBtn.addEventListener('click', downloadCurrentAudioAsMp3);
+    els.saveRecordBtn.addEventListener('click', saveCurrentPracticeRecord);
+    els.exportAllTxtBtn.addEventListener('click', exportAllRecordsToTxt);
+    els.celebrateAgainBtn.addEventListener('click', () => {
+      launchConfetti();
+      playCelebrationSound();
+    });
+
+    // 視窗載入完成後初始化第一題（單頁只出現一道題）
+    window.onload = function () {
+      resizeConfettiCanvas();
+      renderCurrentQuestion();
+    };
+  </script>
+</body>
+</html>
